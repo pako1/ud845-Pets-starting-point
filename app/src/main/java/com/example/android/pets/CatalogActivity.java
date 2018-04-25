@@ -44,7 +44,8 @@ public class CatalogActivity extends AppCompatActivity {
 
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        String[] projection= {
+
+        String[] projection = {
                 PetContract.PetEntry._ID,
                 PetContract.PetEntry.COLUMN_PET_NAME,
                 PetContract.PetEntry.COLUMN_PET_BREED,
@@ -54,17 +55,40 @@ public class CatalogActivity extends AppCompatActivity {
 
         Cursor cursor = db.query(PetContract.PetEntry.TABLE_NAME, projection, null, null, null, null, null);
 
+        TextView displayView = findViewById(R.id.text_view_pet);
 
         try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+
+            displayView.setText("The table pets contains " + cursor.getCount() + "pets \n \n");
+
+            displayView.append(PetContract.PetEntry._ID + " - " + PetContract.PetEntry.COLUMN_PET_NAME + " - "
+                    + PetContract.PetEntry.COLUMN_PET_GENDER + " - " + PetContract.PetEntry.COLUMN_PET_WEIGHT + " - "
+                    + PetContract.PetEntry.COLUMN_PET_BREED +"\n");
+
+            int idColumnIndex = cursor.getColumnIndex(PetContract.PetEntry._ID);
+            int nameColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_NAME);
+            int genderColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_GENDER);
+            int weighColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_WEIGHT);
+            int breedColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_BREED);
+
+
+            while (cursor.moveToNext()) {
+                int currentID = cursor.getInt(idColumnIndex);
+                String currentName = cursor.getString(nameColumnIndex);
+                String currentGender = cursor.getString(genderColumnIndex);
+                int currentWeight = cursor.getInt(weighColumnIndex);
+                String currentBreed = cursor.getString(breedColumnIndex);
+
+                displayView.append("\n" + currentID + " - " + currentName + " - " + currentGender + " - " + currentWeight
+                        + " - " + currentBreed);
+            }
+
+
         } finally {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
             cursor.close();
         }
+
+
     }
 
     @Override
@@ -99,6 +123,7 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void insertPet() {
+
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(PetContract.PetEntry.COLUMN_PET_NAME, "Toto");
