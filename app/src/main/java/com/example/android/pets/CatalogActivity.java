@@ -4,22 +4,19 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
 import com.example.android.pets.data.PetContract;
-import com.example.android.pets.data.PetDbHelper;
 
 public class CatalogActivity extends AppCompatActivity {
 
-    private PetDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,15 +32,11 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        mDbHelper = new PetDbHelper(this);
         displayDatabaseInfo();
 
     }
 
     private void displayDatabaseInfo() {
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         String[] projection = {
                 PetContract.PetEntry._ID,
@@ -52,8 +45,8 @@ public class CatalogActivity extends AppCompatActivity {
                 PetContract.PetEntry.COLUMN_PET_GENDER,
                 PetContract.PetEntry.COLUMN_PET_WEIGHT
         };
-
-        Cursor cursor = db.query(PetContract.PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+        // call the contentResolver which will afterwards call the contentProviver(PET PROVIDER)
+        Cursor cursor = getContentResolver().query(PetContract.PetEntry.CONTENT_URI, projection, null, null, null);
 
         TextView displayView = findViewById(R.id.text_view_pet);
 
@@ -63,7 +56,7 @@ public class CatalogActivity extends AppCompatActivity {
 
             displayView.append(PetContract.PetEntry._ID + " - " + PetContract.PetEntry.COLUMN_PET_NAME + " - "
                     + PetContract.PetEntry.COLUMN_PET_GENDER + " - " + PetContract.PetEntry.COLUMN_PET_WEIGHT + " - "
-                    + PetContract.PetEntry.COLUMN_PET_BREED +"\n");
+                    + PetContract.PetEntry.COLUMN_PET_BREED + "\n");
 
             int idColumnIndex = cursor.getColumnIndex(PetContract.PetEntry._ID);
             int nameColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_NAME);
@@ -85,7 +78,9 @@ public class CatalogActivity extends AppCompatActivity {
 
 
         } finally {
-            cursor.close();
+            if (cursor != null) {
+                cursor.close();
+            }
         }
 
 
@@ -124,15 +119,14 @@ public class CatalogActivity extends AppCompatActivity {
 
     private void insertPet() {
 
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(PetContract.PetEntry.COLUMN_PET_NAME, "Toto");
         values.put(PetContract.PetEntry.COLUMN_PET_BREED, "Terrier");
         values.put(PetContract.PetEntry.COLUMN_PET_GENDER, "Male");
         values.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, "7kg");
 
-        long newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, values);
-        Log.v("catalogActivit", "new row" + newRowId);
+        Uri newUri = getContentResolver().insert(PetContract.PetEntry.CONTENT_URI, values);
+
     }
 
 
